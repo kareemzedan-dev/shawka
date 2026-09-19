@@ -1,0 +1,60 @@
+client:
+  id: shawka
+  version: "1.0.0"
+  schemaVersion: 2
+  app_name: "شوكة و سكينة"
+  company_name: Xyronix
+  package_name: com.xyronix.shawka
+  bundle_id: com.xyronix.shawka
+  tagline: "شوكة و سكينة — اطلب من أفضل موردي المواد الغذائية، بتوصيل فاخر"
+  admin_panel_title: "إدارة شوكة و سكينة"
+  driver_app_name: "سائق شوكة و سكينة"
+
+firebase:
+  project_id: shawka-689fa
+  region: us-central1
+
+branding:
+  # Extracted from official شوكة و سكينة logo (black + metallic gold).
+  primary: "#D4AF37"
+  primary_dark: "#8E6D2F"
+  primary_light: "#F1D27B"
+  secondary: "#0A0A0A"
+  secondary_light: "#1A1A1A"
+  accent: "#E8C547"
+
+support:
+  email: support@shawka.app
+  phone: "01016370062"
+  # Legal + public pages (Firebase Hosting site shawka-legal).
+  website: "https://shawka-legal.web.app"
+  address: "Najda Street, Benha, Qalyubia, Egypt"
+
+payment:
+  paymob:
+    enabled: true
+  stripe:
+    enabled: false
+  cash:
+    enabled: true
+
+maps:
+  provider: google
+
+features:
+  delivery:
+    enabled: true
+  pharmacy:
+    enabled: false
+  grocery:
+    enabled: true
+  wallet:
+    enabled: true
+  coupons:
+    enabled: true
+  subscriptions:
+    enabled: false
+  loyalty:
+    enabled: true
+  marketplace:
+    enabled: true

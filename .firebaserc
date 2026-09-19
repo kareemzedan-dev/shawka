@@ -1,0 +1,21 @@
+{
+  "projects": {
+    "default": "shawka-689fa"
+  },
+  "targets": {
+    "shawka-689fa": {
+      "hosting": {
+        "web": [
+          "shawka-689fa"
+        ],
+        "admin": [
+          "shawka-admin"
+        ],
+        "legal": [
+          "shawka-legal"
+        ]
+      }
+    }
+  },
+  "etags": {}
+}

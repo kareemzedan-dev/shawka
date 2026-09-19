@@ -1,0 +1,78 @@
+{
+  "conditions": [],
+  "parameters": {
+    "driver_assignment_accept_seconds": {
+      "defaultValue": { "value": "45" },
+      "description": "Seconds a driver has to accept an offer.",
+      "valueType": "NUMBER"
+    },
+    "driver_assignment_max_rounds": {
+      "defaultValue": { "value": "5" },
+      "description": "Maximum driver assignment rounds.",
+      "valueType": "NUMBER"
+    },
+    "driver_assignment_radius_km": {
+      "defaultValue": { "value": "8" },
+      "description": "Base driver search radius in kilometers.",
+      "valueType": "NUMBER"
+    },
+    "driver_assignment_candidates_per_round": {
+      "defaultValue": { "value": "50" },
+      "description": "Maximum candidates evaluated per assignment round.",
+      "valueType": "NUMBER"
+    },
+    "driver_gps_update_interval_seconds": {
+      "defaultValue": { "value": "15" },
+      "description": "Driver GPS update interval.",
+      "valueType": "NUMBER"
+    },
+    "driver_gps_min_distance_meters": {
+      "defaultValue": { "value": "50" },
+      "description": "Minimum movement before a GPS update.",
+      "valueType": "NUMBER"
+    },
+    "driver_background_location_enabled": {
+      "defaultValue": { "value": "true" },
+      "description": "Enable driver background location.",
+      "valueType": "BOOLEAN"
+    },
+    "driver_presence_heartbeat_seconds": {
+      "defaultValue": { "value": "60" },
+      "description": "Driver heartbeat interval.",
+      "valueType": "NUMBER"
+    },
+    "driver_presence_offline_threshold_seconds": {
+      "defaultValue": { "value": "180" },
+      "description": "Heartbeat age before a driver is considered offline.",
+      "valueType": "NUMBER"
+    },
+    "driver_presence_location_stale_seconds": {
+      "defaultValue": { "value": "600" },
+      "description": "Location age before it becomes stale.",
+      "valueType": "NUMBER"
+    },
+    "driver_max_document_upload_size_mb": {
+      "defaultValue": { "value": "5" },
+      "description": "Maximum driver document size in MB.",
+      "valueType": "NUMBER"
+    },
+    "driver_gps_max_speed_bicycle_kmh": {
+      "defaultValue": { "value": "35" },
+      "description": "Maximum trusted bicycle speed.",
+      "valueType": "NUMBER"
+    },
+    "driver_gps_max_speed_motorcycle_kmh": {
+      "defaultValue": { "value": "120" },
+      "description": "Maximum trusted motorcycle speed.",
+      "valueType": "NUMBER"
+    },
+    "driver_gps_max_speed_car_kmh": {
+      "defaultValue": { "value": "160" },
+      "description": "Maximum trusted car speed.",
+      "valueType": "NUMBER"
+    }
+  },
+  "version": {
+    "description": "Shawka production runtime configuration"
+  }
+}

@@ -1,0 +1,63 @@
+# Official White Label client template (schemaVersion 2).
+# Used by: dart run tool/create_client.dart
+# Do not copy from an existing client — always start from this file.
+
+client:
+  id: "{{CLIENT_ID}}"
+  version: "1.0.0"
+  schemaVersion: 2
+  app_name: "{{APP_NAME}}"
+  company_name: "{{COMPANY_NAME}}"
+  package_name: "{{PACKAGE_NAME}}"
+  bundle_id: "{{BUNDLE_ID}}"
+  tagline: "اطلب من بيتك — أسرع توصيل في محافظتك"
+  admin_panel_title: "{{APP_NAME}} Admin"
+  driver_app_name: "{{APP_NAME}} Driver"
+
+firebase:
+  project_id: "{{FIREBASE_PROJECT_ID}}"
+  region: us-central1
+
+branding:
+  # Default platform palette — premium black + gold (Shawka | Skeena).
+  primary: "#D4AF37"
+  primary_dark: "#8E6D2F"
+  primary_light: "#F1D27B"
+  secondary: "#0A0A0A"
+  secondary_light: "#1A1A1A"
+  accent: "#E8C547"
+
+support:
+  email: support@example.com
+  phone: "01000000000"
+  website: "https://example.com"
+  address: "City, Country"
+
+payment:
+  paymob:
+    enabled: false
+  stripe:
+    enabled: false
+  cash:
+    enabled: true
+
+maps:
+  provider: google
+
+features:
+  delivery:
+    enabled: true
+  pharmacy:
+    enabled: true
+  grocery:
+    enabled: true
+  wallet:
+    enabled: false
+  coupons:
+    enabled: false
+  subscriptions:
+    enabled: false
+  loyalty:
+    enabled: false
+  marketplace:
+    enabled: false

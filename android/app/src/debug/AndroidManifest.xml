@@ -1,0 +1,13 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Flutter needs INTERNET for hot reload / observatory on device. -->
+    <uses-permission android:name="android.permission.INTERNET"/>
+    <!-- Debug-only: Impeller/OpenGLES on Android emulators often kills the
+         engine before the VM service handshake completes (errno 1225 /
+         Connection closed). Skia is stable for emulator debugging.
+         Release builds keep Impeller (this file is not merged into release). -->
+    <application>
+        <meta-data
+            android:name="io.flutter.embedding.android.EnableImpeller"
+            android:value="false" />
+    </application>
+</manifest>

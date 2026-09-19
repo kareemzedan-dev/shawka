@@ -1,0 +1,222 @@
+rules_version = '2';
+
+// MatlobGo — Firebase Storage Security Rules (Production)
+// Customer assets + Driver documents
+// Last frozen: Phase 1.5 — Backend Contracts
+
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    function userDoc() {
+      return firestore.get(/databases/(default)/documents/users/$(request.auth.uid));
+    }
+
+    function userDocExists() {
+      return firestore.exists(/databases/(default)/documents/users/$(request.auth.uid));
+    }
+
+    function authRole() {
+      return request.auth != null && userDocExists()
+        ? ('role' in userDoc().data
+            ? userDoc().data.role
+            : ('rule' in userDoc().data ? userDoc().data.rule : 'customer'))
+        : 'customer';
+    }
+
+    function isStaff() {
+      return request.auth != null && authRole() == 'admin';
+    }
+
+    function staffRole() {
+      return isStaff() && 'staffRole' in userDoc().data
+        ? userDoc().data.staffRole
+        : 'admin';
+    }
+
+    function isSuperOrAdmin() {
+      return isStaff() && (staffRole() == 'superAdmin' || staffRole() == 'admin');
+    }
+
+    function isManager() {
+      return isStaff() && staffRole() == 'manager';
+    }
+
+    function isSupport() {
+      return isStaff() && staffRole() == 'support';
+    }
+
+    function isContentEditor() {
+      return isStaff() && staffRole() == 'contentEditor';
+    }
+
+    function isStoreManager() {
+      return isStaff() && staffRole() == 'storeManager';
+    }
+
+    function isStoreAssistant() {
+      return isStaff() && staffRole() == 'storeAssistant';
+    }
+
+    function isDelivery() {
+      return request.auth != null && authRole() == 'delivery';
+    }
+
+    function canManageDeliveryUsers() {
+      return isSuperOrAdmin() || isManager() || isSupport();
+    }
+
+    function canReadUsersAsStaff() {
+      return isSuperOrAdmin() || isManager() || isSupport();
+    }
+
+    function canWriteStores() {
+      return isSuperOrAdmin()
+        || isManager()
+        || isStoreManager()
+        || isStoreAssistant();
+    }
+
+    function managedStoreIds() {
+      return request.auth != null && userDocExists()
+          && 'managedStoreIds' in userDoc().data
+          && userDoc().data.managedStoreIds is list
+        ? userDoc().data.managedStoreIds
+        : [];
+    }
+
+    function canWriteThisStore(storeId) {
+      return isSuperOrAdmin()
+        || isManager()
+        || isStoreAssistant()
+        || (isStoreManager() && storeId in managedStoreIds());
+    }
+
+    function canWritePromoBanners() {
+      return isSuperOrAdmin() || isContentEditor();
+    }
+
+    function canWriteCategories() {
+      return isSuperOrAdmin()
+        || isManager()
+        || isContentEditor()
+        || isStoreAssistant();
+    }
+
+    function isAllowedDriverDocument(fileName) {
+      return fileName in [
+        'license.jpg',
+        'license.png',
+        'license.webp',
+        'id_front.jpg',
+        'id_front.png',
+        'id_front.webp',
+        'id_back.jpg',
+        'id_back.png',
+        'id_back.webp',
+        'vehicle_license.jpg',
+        'vehicle_license.png',
+        'vehicle_license.webp'
+      ];
+    }
+
+    function isAllowedImageContentType() {
+      return request.resource.contentType.matches('image/(jpeg|png|webp)');
+    }
+
+    // 5 MB default — override via Remote Config maxDocumentUploadSizeMb in app before upload
+    function isWithinDriverUploadSizeLimit() {
+      return request.resource.size < 5 * 1024 * 1024;
+    }
+
+    function isWithinCatalogImageSizeLimit() {
+      return request.resource.size < 10 * 1024 * 1024;
+    }
+
+    // ─── Driver documents ───────────────────────────────────────────
+
+    match /drivers/{userId}/{fileName} {
+      allow read: if request.auth != null && (
+        request.auth.uid == userId
+        || canManageDeliveryUsers()
+      );
+
+      allow write: if request.auth != null
+        && request.auth.uid == userId
+        && isDelivery()
+        && isAllowedDriverDocument(fileName)
+        && isAllowedImageContentType()
+        && isWithinDriverUploadSizeLimit();
+
+      allow delete: if request.auth != null && (
+        request.auth.uid == userId
+        || isSuperOrAdmin()
+      );
+    }
+
+    match /drivers/{userId}/settlement_receipts/{fileName} {
+      allow read: if request.auth != null && (
+        request.auth.uid == userId
+        || canManageDeliveryUsers()
+      );
+
+      allow write: if request.auth != null
+        && request.auth.uid == userId
+        && isDelivery()
+        && isAllowedImageContentType()
+        && isWithinDriverUploadSizeLimit();
+
+      allow delete: if request.auth != null && (
+        request.auth.uid == userId
+        || isSuperOrAdmin()
+      );
+    }
+
+    // ─── Customer registration proof ────────────────────────────────
+
+    match /customers/{userId}/{fileName} {
+      allow read: if request.auth != null && (
+        request.auth.uid == userId
+        || canReadUsersAsStaff()
+      );
+
+      allow write: if request.auth != null
+        && request.auth.uid == userId
+        && fileName in ['proof.jpg', 'proof_thumb.jpg']
+        && isAllowedImageContentType()
+        && isWithinDriverUploadSizeLimit();
+
+      allow delete: if request.auth != null && (
+        request.auth.uid == userId
+        || isSuperOrAdmin()
+        || isManager()
+        || isSupport()
+      );
+    }
+
+    // ─── Existing customer / admin assets ───────────────────────────
+
+    match /stores/{storeId}/{allPaths=**} {
+      allow read: if true;
+      allow create, update: if canWriteThisStore(storeId)
+        && isAllowedImageContentType()
+        && isWithinCatalogImageSizeLimit();
+      allow delete: if canWriteThisStore(storeId);
+    }
+
+    match /promo_banners/{bannerId}/{allPaths=**} {
+      allow read: if true;
+      allow create, update: if canWritePromoBanners()
+        && isAllowedImageContentType()
+        && isWithinCatalogImageSizeLimit();
+      allow delete: if canWritePromoBanners();
+    }
+
+    match /store_categories/{governorateKey}/{categoryId}/{allPaths=**} {
+      allow read: if true;
+      allow create, update: if canWriteCategories()
+        && isAllowedImageContentType()
+        && isWithinCatalogImageSizeLimit();
+      allow delete: if canWriteCategories();
+    }
+  }
+}

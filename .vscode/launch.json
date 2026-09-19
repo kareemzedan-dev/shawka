@@ -1,0 +1,46 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "تطبيق العميل",
+      "request": "launch",
+      "type": "dart",
+      "program": "lib/main.dart",
+      "deviceId": "emulator-5554",
+      "noDebug": true,
+      "toolArgs": [
+        "--no-enable-impeller",
+        "--no-dds"
+      ]
+    },
+    {
+      "name": "تطبيق العميل (Debug)",
+      "request": "launch",
+      "type": "dart",
+      "program": "lib/main.dart",
+      "deviceId": "emulator-5554",
+      "toolArgs": [
+        "--no-enable-impeller",
+        "--no-dds",
+        "--host-vmservice-port=8391",
+        "--dds-port=8392"
+      ]
+    },
+    {
+      "name": "لوحة التحكم (ويب)",
+      "request": "launch",
+      "type": "dart",
+      "program": "lib/main_admin.dart",
+      "deviceId": "chrome",
+      "args": [
+        "--web-port=8080"
+      ]
+    },
+    {
+      "name": "لوحة التحكم",
+      "request": "launch",
+      "type": "dart",
+      "program": "lib/main_admin.dart"
+    }
+  ]
+}

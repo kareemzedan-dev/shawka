@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <base href="$FLUTTER_BASE_HREF">
+
+  <meta charset="UTF-8">
+  <meta content="IE=Edge" http-equiv="X-UA-Compatible">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="description" content="شوكة و سكينة — اطلب من أفضل موردي المواد الغذائية في مصر. تصفّح العروض وحمّل التطبيق لإتمام طلبك مع تتبع مباشر.">
+  <meta name="keywords" content="شوكة و سكينة, توصيل مواد غذائية, موردين, مصر, طلب أونلاين">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="https://shawka-legal.web.app/">
+
+  <!-- Open Graph -->
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="شوكة و سكينة">
+  <meta property="og:title" content="شوكة و سكينة — اطلب من بيتك">
+  <meta property="og:description" content="اكتشف الموردين والعروض. أكمل طلبك عبر التطبيق مع تتبع مباشر وتجربة فاخرة.">
+  <meta property="og:url" content="https://shawka-legal.web.app/">
+  <meta property="og:locale" content="ar_EG">
+
+  <!-- Twitter -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="شوكة و سكينة — اطلب من بيتك">
+  <meta name="twitter:description" content="اكتشف الموردين والعروض. أكمل طلبك عبر التطبيق مع تتبع مباشر.">
+
+  <!-- PWA -->
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="شوكة و سكينة">
+  <meta name="theme-color" content="#0A0A0A">
+  <link rel="apple-touch-icon" href="icons/Icon-192.png">
+  <link rel="icon" type="image/png" sizes="48x48" href="favicon.png"/>
+  <link rel="icon" type="image/png" sizes="192x192" href="icons/Icon-192.png"/>
+  <link rel="icon" type="image/png" sizes="512x512" href="icons/Icon-512.png"/>
+  <link rel="manifest" href="manifest.json">
+
+  <title>شوكة و سكينة — اطلب من موردي المواد الغذائية | توصيل سريع</title>
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    "name": "شوكة و سكينة",
+    "alternateName": "Shawka & Skeena",
+    "url": "https://shawka-legal.web.app",
+    "sameAs": [
+      "https://play.google.com/store/apps/details?id=com.xyronix.shawka"
+    ]
+  }
+  </script>
+</head>
+<body style="background-color:#000000;margin:0;">
+  <div id="loading" style="position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;background:#000000;font-family:system-ui,sans-serif;color:#D4AF37;">
+    <p style="margin:0;font-size:1.1rem;">جاري التحميل…</p>
+  </div>
+  <script>
+    // Remove stale service workers that can serve broken cached assets.
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.getRegistrations().then(function (regs) {
+        regs.forEach(function (r) { r.unregister(); });
+      });
+    }
+
+    function hideLoading() {
+      var el = document.getElementById('loading');
+      if (el) el.remove();
+    }
+
+    window.addEventListener('flutter-first-frame', hideLoading);
+
+    // Newer Flutter web builds may not fire flutter-first-frame reliably.
+    var bootObserver = new MutationObserver(function () {
+      if (document.querySelector('flutter-view, flt-glass-pane')) {
+        hideLoading();
+        bootObserver.disconnect();
+      }
+    });
+    bootObserver.observe(document.body, { childList: true, subtree: true });
+
+    window.addEventListener('error', function (e) {
+      var el = document.getElementById('loading');
+      if (!el) return;
+      el.innerHTML = '<p style="margin:0;color:#F1D27B;text-align:center;padding:1rem;">'
+        + 'تعذّر تحميل التطبيق. '
+        + '<button onclick="location.reload()" style="margin-top:0.75rem;padding:0.5rem 1rem;border:0;border-radius:8px;background:#D4AF37;color:#0A0A0A;cursor:pointer;font-weight:700;">إعادة المحاولة</button>'
+        + '</p>';
+      console.error(e.error || e.message);
+    });
+  </script>
+  <script src="flutter_bootstrap.js" async></script>
+</body>
+</html>

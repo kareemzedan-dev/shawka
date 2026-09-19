@@ -1,0 +1,726 @@
+rules_version = '2';
+
+// MatlobGo — Firestore Security Rules (Production)
+// Customer App + Driver App + Admin Panel
+// Assignment-sensitive order fields: Cloud Functions (Admin SDK) ONLY.
+// Last frozen: Phase 1.5 — Backend Contracts
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ─── Auth helpers ───────────────────────────────────────────────
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function userDoc() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid));
+    }
+
+    function userDocExists() {
+      return exists(/databases/$(database)/documents/users/$(request.auth.uid));
+    }
+
+    function authRole() {
+      return isSignedIn() && 'role' in request.auth.token
+        ? request.auth.token.role
+        : (userDocExists()
+            ? ('role' in userDoc().data
+                ? userDoc().data.role
+                : ('rule' in userDoc().data ? userDoc().data.rule : 'customer'))
+            : 'customer');
+    }
+
+    function staffRole() {
+      return isSignedIn() && 'staffRole' in request.auth.token
+        ? request.auth.token.staffRole
+        : (isStaff() && userDocExists() && 'staffRole' in userDoc().data
+            ? userDoc().data.staffRole
+            : 'admin');
+    }
+
+    function isStaff() {
+      return isSignedIn() && authRole() == 'admin';
+    }
+
+    function isSuperOrAdmin() {
+      return isStaff() && (staffRole() == 'superAdmin' || staffRole() == 'admin');
+    }
+
+    function isManager() {
+      return isStaff() && staffRole() == 'manager';
+    }
+
+    function isSupport() {
+      return isStaff() && staffRole() == 'support';
+    }
+
+    function isContentEditor() {
+      return isStaff() && staffRole() == 'contentEditor';
+    }
+
+    function isStoreManager() {
+      return isStaff() && staffRole() == 'storeManager';
+    }
+
+    function isStoreAssistant() {
+      return isStaff() && staffRole() == 'storeAssistant';
+    }
+
+    function isDelivery() {
+      return isSignedIn() && (
+        authRole() == 'delivery'
+        || (userDocExists()
+            && userDoc().data.get('role', userDoc().data.get('rule', 'customer')) == 'delivery')
+      );
+    }
+
+    function isDriverSelf(uid) {
+      return isDelivery() && request.auth.uid == uid;
+    }
+
+    function onlyFieldsChanged(allowed) {
+      return request.resource.data.diff(resource.data).affectedKeys().hasOnly(allowed);
+    }
+
+    function driverSensitiveUserFields() {
+      return [
+        'role', 'rule', 'staffRole',
+        'driverApprovalStatus', 'driverApprovalNote',
+        'driverApprovedAt', 'driverRejectedAt',
+        'isActive', 'avgDriverRating', 'driverRatingCount',
+        'activeOrderId', 'createdByAdmin', 'lastOfferedAt',
+        'acceptRate', 'noResponseCount',
+        'offerCooldownUntil', 'consecutiveRejects', 'lastRejectAt',
+        'earningsBalance', 'outstandingBalance', 'netBalance',
+        'driverCashBlocked', 'walletStatus', 'lastSettlementAt',
+        'walletLastNotifiedLevel'
+      ];
+    }
+
+    function driverPresenceLocationFields() {
+      return [
+        'location', 'latitude', 'longitude', 'locationUpdatedAt',
+        'geohash', 'geohashUpdatedAt',
+        'isDriverOnline', 'lastActiveAt', 'heartbeatAt',
+        'fcmToken', 'fcmTokenUpdatedAt', 'updatedAt'
+      ];
+    }
+
+    function driverRegistrationFields() {
+      return [
+        'name', 'phone', 'governorate', 'email',
+        'nationalId', 'vehicleType', 'vehicleModel', 'vehiclePlate',
+        'documents', 'documentsUploadedAt', 'updatedAt'
+      ];
+    }
+
+    // ─── Staff permissions (mirror AdminPermissions) ──────────────────
+
+    function canReadUsersAsStaff() {
+      return isSuperOrAdmin() || isManager() || isSupport();
+    }
+
+    function staffRoleChangeBlocked() {
+      return request.resource.data.diff(resource.data).affectedKeys()
+          .hasAny(['staffRole', 'managedStoreIds']);
+    }
+
+    function managedStoreIds() {
+      return isSignedIn() && 'managedStoreIds' in request.auth.token
+          && request.auth.token.managedStoreIds is list
+        ? request.auth.token.managedStoreIds
+        : (userDocExists() && 'managedStoreIds' in userDoc().data
+            && userDoc().data.managedStoreIds is list
+              ? userDoc().data.managedStoreIds
+              : []);
+    }
+
+    function managesStore(storeId) {
+      return isStoreManager() && storeId in managedStoreIds();
+    }
+
+    function canWriteThisStore(storeId) {
+      return isSuperOrAdmin()
+        || isManager()
+        || isStoreAssistant()
+        || managesStore(storeId);
+    }
+
+    function canCreateStores() {
+      return isSuperOrAdmin() || isManager();
+    }
+
+    function canDeleteStores() {
+      return isSuperOrAdmin() || isManager();
+    }
+
+    function canManageThisOrder() {
+      return isSuperOrAdmin()
+        || isManager()
+        || isSupport()
+        || isStoreAssistant()
+        || (isStoreManager() && resource.data.storeId in managedStoreIds());
+    }
+
+    function canManageDeliveryUsers() {
+      return isSuperOrAdmin() || isManager() || isSupport();
+    }
+
+    function canReadStoresAsStaff() {
+      return isSuperOrAdmin()
+        || isManager()
+        || isStoreManager()
+        || isStoreAssistant()
+        || isContentEditor()
+        || isSupport();
+    }
+
+    function canWriteStores() {
+      return isSuperOrAdmin()
+        || isManager()
+        || isStoreManager()
+        || isStoreAssistant();
+    }
+
+    function canWriteCategories() {
+      return isSuperOrAdmin()
+        || isManager()
+        || isContentEditor()
+        || isStoreAssistant();
+    }
+
+    function canWritePromoBanners() {
+      return isSuperOrAdmin() || isContentEditor();
+    }
+
+    function canWriteCmsTexts() {
+      return isSuperOrAdmin() || isContentEditor();
+    }
+
+    function canWriteActivityTypes() {
+      return isSuperOrAdmin() || isManager() || isContentEditor();
+    }
+
+    function canWritePromotions() {
+      return isSuperOrAdmin() || isManager() || isContentEditor();
+    }
+
+    function canWriteGovernorates() {
+      return isSuperOrAdmin() || isContentEditor();
+    }
+
+    function canManageOrders() {
+      return isSuperOrAdmin()
+        || isManager()
+        || isSupport()
+        || isStoreManager()
+        || isStoreAssistant();
+    }
+
+    function validOrderStatusTransition() {
+      let prev = resource.data.status;
+      let next = request.resource.data.status;
+      return prev == next
+        || (prev == 'pending' && next in [
+             'preparing', 'readyForPickup', 'onTheWay', 'outForDelivery',
+             'delivered', 'cancelled'
+           ])
+        || (prev == 'preparing' && next in [
+             'readyForPickup', 'onTheWay', 'outForDelivery',
+             'delivered', 'cancelled'
+           ])
+        || (prev == 'readyForPickup' && next in [
+             'onTheWay', 'outForDelivery', 'delivered', 'cancelled'
+           ])
+        || (prev == 'onTheWay' && next in ['delivered', 'cancelled'])
+        || (prev == 'outForDelivery' && next in ['delivered', 'cancelled']);
+    }
+
+    function canReadAnalytics() {
+      return isSuperOrAdmin() || isManager() || isStoreManager();
+    }
+
+    function canWriteAppSettings() {
+      return isSuperOrAdmin();
+    }
+
+    function canWriteAppAlertsCms() {
+      return isSuperOrAdmin() || isContentEditor();
+    }
+
+    function appAlertsFieldsOnly() {
+      return request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+        'maintenanceMode',
+        'maintenanceTitle',
+        'maintenanceMessage',
+        'alertBannerEnabled',
+        'alertBannerTitle',
+        'alertBannerMessage',
+        'alertBannerSeverity',
+        'alertBannerActionUrl',
+        'updatedAt'
+      ]);
+    }
+
+    function canManagePushCampaigns() {
+      return isSuperOrAdmin();
+    }
+
+    function canReadAuditLogs() {
+      return isSuperOrAdmin();
+    }
+
+    function canWriteAuditLogs() {
+      return isStaff();
+    }
+
+    // ─── users ──────────────────────────────────────────────────────
+
+    match /users/{userId} {
+      allow read: if isSignedIn() && request.auth.uid == userId;
+      allow read: if isSuperOrAdmin();
+      allow read: if canReadUsersAsStaff() && resource.data.role == 'customer';
+      allow read: if canManageDeliveryUsers() && resource.data.role == 'delivery';
+      // Customer order tracking reads assigned driver live location when published
+      allow read: if isSignedIn()
+        && resource.data.role == 'delivery'
+        && resource.data.keys().hasAny(['location', 'latitude']);
+
+      allow create: if isSignedIn()
+        && request.auth.uid == userId
+        && (!('role' in request.resource.data)
+            || request.resource.data.role == 'customer'
+            || request.resource.data.role == 'delivery')
+        && !('staffRole' in request.resource.data)
+        && !('activeOrderId' in request.resource.data)
+        && (request.resource.data.get('role', 'customer') != 'delivery'
+            || request.resource.data.get('driverApprovalStatus', 'pending') == 'pending')
+        // عميل غير ضيف: التسجيل بانتظار الموافقة + صورة إثبات
+        && (request.resource.data.get('isGuest', false) == true
+            || request.resource.data.get('role', 'customer') != 'customer'
+            || (
+              request.resource.data.get('customerApprovalStatus', 'pending') == 'pending'
+              && request.resource.data.get('proofImageUrl', '') is string
+              && request.resource.data.proofImageUrl.size() > 8
+              && request.resource.data.get('address', '') is string
+              && request.resource.data.address.size() >= 10
+              && request.resource.data.get('isActive', false) == false
+            ));
+
+      // تحديث ملف العميل — ممنوع تفعيل/اعتماد النفس؛ مسموح إرسال طلب معلق مرة
+      allow update: if isSignedIn()
+        && request.auth.uid == userId
+        && onlyFieldsChanged([
+          'name', 'email', 'phone', 'governorate', 'isGuest', 'isActive',
+          'activityTypeId', 'activityTypeName',
+          'proofImageUrl', 'proofImageThumbUrl',
+          'address',
+          'customerApprovalStatus',
+          'signupComplete',
+          'lastActiveAt', 'lastOrderAt',
+          'fcmToken', 'fcmTokenUpdatedAt', 'updatedAt', 'createdAt'
+        ])
+        && !request.resource.data.diff(resource.data).affectedKeys()
+            .hasAny([
+              'customerApprovedAt', 'customerRejectedAt', 'customerApprovalNote',
+              'staffRole', 'role', 'activeOrderId', 'managedStoreIds'
+            ])
+        && (
+          !('isActive' in request.resource.data.diff(resource.data).affectedKeys())
+          || request.resource.data.isActive == false
+        )
+        && (
+          !('customerApprovalStatus' in request.resource.data.diff(resource.data).affectedKeys())
+          || (
+            request.resource.data.customerApprovalStatus == 'pending'
+            && resource.data.get('customerApprovalStatus', '') in ['', 'pending', 'incomplete']
+            && request.resource.data.get('signupComplete', false) == true
+            && request.resource.data.get('proofImageUrl', '') is string
+            && request.resource.data.proofImageUrl.size() > 8
+            && request.resource.data.get('address', '') is string
+            && request.resource.data.address.size() >= 10
+          )
+        );
+
+      // Driver — GPS, presence, FCM (no self-approval, no activeOrderId)
+      allow update: if isDriverSelf(userId)
+        && resource.data.role == 'delivery'
+        && onlyFieldsChanged(driverPresenceLocationFields())
+        && !(resource.data.get('driverCashBlocked', false) == true
+            && request.resource.data.get('isDriverOnline', false) == true)
+        && !request.resource.data.diff(resource.data).affectedKeys()
+            .hasAny(driverSensitiveUserFields());
+
+      // Driver — registration profile while pending approval
+      allow update: if isDriverSelf(userId)
+        && resource.data.role == 'delivery'
+        && resource.data.get('driverApprovalStatus', 'pending') == 'pending'
+        && onlyFieldsChanged(driverRegistrationFields())
+        && !request.resource.data.diff(resource.data).affectedKeys()
+            .hasAny(driverSensitiveUserFields());
+
+      allow update: if canManageDeliveryUsers()
+        && resource.data.role == 'delivery'
+        && onlyFieldsChanged([
+          'name', 'phone', 'isActive', 'governorate', 'updatedAt', 'email',
+          // استعادة GPS من لوحة التحكم (fallback إن فشل الـ Callable)
+          'gpsTrustStatus', 'gpsViolationCount24h', 'assignmentEligibleUntil',
+          'locationRejectedAt', 'lastValidLatitude', 'lastValidLongitude',
+          'lastValidLocationAt', 'isDriverOnline', 'gpsAdminResetAt'
+        ]);
+
+      allow update: if isSuperOrAdmin() && !staffRoleChangeBlocked();
+
+      allow delete: if isSuperOrAdmin();
+
+      match /saved_addresses/{addressId} {
+        allow read, write: if isSignedIn() && request.auth.uid == userId;
+      }
+
+      match /favorites/{favoriteId} {
+        allow read: if isSignedIn() && request.auth.uid == userId;
+        allow create: if isSignedIn()
+          && request.auth.uid == userId
+          && request.resource.data.keys().hasAll([
+            'type', 'storeId', 'productId', 'createdAt'
+          ])
+          && request.resource.data.keys().hasOnly([
+            'type', 'storeId', 'productId', 'createdAt'
+          ])
+          && request.resource.data.type in ['store', 'product']
+          && request.resource.data.storeId is string
+          && request.resource.data.storeId.size() > 0
+          && request.resource.data.productId is string
+          && (request.resource.data.type == 'store'
+              ? request.resource.data.productId == ''
+              : request.resource.data.productId.size() > 0)
+          && request.resource.data.createdAt is timestamp;
+        allow update: if isSignedIn()
+          && request.auth.uid == userId
+          && request.resource.data.keys().hasOnly([
+            'type', 'storeId', 'productId', 'createdAt'
+          ])
+          && request.resource.data.type == resource.data.type
+          && request.resource.data.storeId == resource.data.storeId
+          && request.resource.data.productId == resource.data.productId
+          && request.resource.data.createdAt is timestamp;
+        allow delete: if isSignedIn() && request.auth.uid == userId;
+      }
+
+      match /notifications/{notificationId} {
+        allow read: if isSignedIn() && request.auth.uid == userId;
+        // Foreground FCM may mirror the user's own notification locally.
+        allow create: if isSignedIn()
+          && request.auth.uid == userId
+          && request.resource.data.keys().hasOnly([
+            'title', 'body', 'type', 'deepLinkId', 'isRead', 'createdAt'
+          ])
+          && request.resource.data.title is string
+          && request.resource.data.title.size() <= 160
+          && request.resource.data.body is string
+          && request.resource.data.body.size() <= 1000
+          && request.resource.data.isRead == false;
+        allow update: if isSignedIn()
+          && request.auth.uid == userId
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['isRead']);
+      }
+    }
+
+    match /wallet_transactions/{txId} {
+      allow read: if canManageDeliveryUsers();
+      allow read: if isDelivery() && resource.data.driverId == request.auth.uid;
+      allow create, update, delete: if false;
+    }
+
+    match /settlement_requests/{requestId} {
+      allow read: if canManageDeliveryUsers();
+      allow read: if isDelivery() && resource.data.driverId == request.auth.uid;
+      allow create, update, delete: if false;
+    }
+
+    match /ops_incidents/{incidentId} {
+      allow read: if canManageOrders();
+      allow update: if canManageOrders()
+        && request.resource.data.diff(resource.data).affectedKeys()
+            .hasOnly(['resolutionStatus', 'resolvedAt']);
+      allow create, delete: if false;
+    }
+
+    // ─── stores & products ──────────────────────────────────────────
+
+    match /stores/{storeId} {
+      allow read: if canReadStoresAsStaff();
+      allow read: if resource.data.get('isActive', true) == true;
+
+      allow create: if canCreateStores()
+        && request.resource.data.get('rating', 0) == 0
+        && request.resource.data.get('ratingSum', 0) == 0
+        && request.resource.data.get('reviewCount', 0) == 0
+        && request.resource.data.get('totalFavorites', 0) == 0;
+      allow update: if canWriteThisStore(storeId)
+        && !request.resource.data.diff(resource.data).affectedKeys().hasAny([
+          'rating', 'ratingSum', 'reviewCount', 'totalFavorites'
+        ]);
+      allow delete: if canDeleteStores();
+
+      match /products/{productId} {
+        allow read: if canReadStoresAsStaff();
+        allow read: if get(/databases/$(database)/documents/stores/$(storeId)).data.get('isActive', true) == true;
+
+        allow create: if canWriteThisStore(storeId)
+          && request.resource.data.get('rating', 0) == 0
+          && request.resource.data.get('ratingSum', 0) == 0
+          && request.resource.data.get('reviewCount', 0) == 0
+          && request.resource.data.get('favoritesCount', 0) == 0;
+        allow update: if canWriteThisStore(storeId)
+          && !request.resource.data.diff(resource.data).affectedKeys().hasAny([
+            'rating', 'ratingSum', 'reviewCount', 'favoritesCount'
+          ]);
+        allow delete: if canWriteThisStore(storeId);
+      }
+    }
+
+    // ─── customer reviews ───────────────────────────────────────────
+
+    match /reviews/{reviewId} {
+      allow read: if resource.data.status == 'approved'
+        || isStaff()
+        || (isSignedIn() && resource.data.userId == request.auth.uid);
+
+      allow create: if isSignedIn()
+        && request.auth.uid == request.resource.data.userId
+        && request.resource.data.keys().hasAll([
+          'userId', 'userName', 'storeId', 'productId', 'rating',
+          'comment', 'imageUrls', 'helpfulCount', 'status',
+          'createdAt', 'updatedAt'
+        ])
+        && request.resource.data.keys().hasOnly([
+          'userId', 'userName', 'storeId', 'productId', 'rating',
+          'comment', 'imageUrls', 'helpfulCount', 'status',
+          'createdAt', 'updatedAt'
+        ])
+        && request.resource.data.userName is string
+        && request.resource.data.storeId is string
+        && request.resource.data.storeId.size() > 0
+        && request.resource.data.productId is string
+        && request.resource.data.rating is int
+        && request.resource.data.rating >= 1
+        && request.resource.data.rating <= 5
+        && request.resource.data.comment is string
+        && request.resource.data.imageUrls is list
+        && request.resource.data.helpfulCount == 0
+        && request.resource.data.status == 'approved'
+        && request.resource.data.createdAt is timestamp
+        && request.resource.data.updatedAt is timestamp;
+
+      allow update: if isSignedIn()
+        && request.auth.uid == resource.data.userId
+        && onlyFieldsChanged(['comment', 'imageUrls', 'updatedAt'])
+        && request.resource.data.comment is string
+        && request.resource.data.imageUrls is list
+        && request.resource.data.updatedAt is timestamp;
+      allow update: if isStaff()
+        && onlyFieldsChanged(['status', 'updatedAt'])
+        && request.resource.data.status in ['pending', 'approved', 'rejected']
+        && request.resource.data.updatedAt is timestamp;
+      allow update: if canManageOrders()
+        && onlyFieldsChanged(['ownerReply', 'ownerRepliedAt', 'updatedAt'])
+        && request.resource.data.ownerReply is string
+        && request.resource.data.ownerRepliedAt is timestamp
+        && request.resource.data.updatedAt is timestamp;
+
+      allow delete: if (isSignedIn() && request.auth.uid == resource.data.userId)
+        || isSuperOrAdmin();
+
+      match /likes/{userId} {
+        allow read: if isSignedIn() && request.auth.uid == userId;
+        allow create: if isSignedIn()
+          && request.auth.uid == userId
+          && request.resource.data.keys().hasOnly(['createdAt'])
+          && request.resource.data.createdAt is timestamp;
+        allow delete: if isSignedIn() && request.auth.uid == userId;
+        allow update: if false;
+      }
+    }
+
+    // ─── orders ─────────────────────────────────────────────────────
+
+    match /orders/{orderId} {
+      allow read: if isSuperOrAdmin() || isManager() || isSupport();
+      allow read: if isStoreManager() && resource.data.storeId in managedStoreIds();
+
+      allow read: if isSignedIn() && resource.data.customerId == request.auth.uid;
+
+      // Driver reads ONLY offered-to-me or assigned-to-me orders
+      allow read: if isDelivery() && (
+        resource.data.deliveryId == request.auth.uid
+        || resource.data.offeredDriverId == request.auth.uid
+      );
+
+      // Customer order creation is server-only via createCustomerOrders.
+      allow create: if false;
+
+      // Staff / admin — order management with enforced status workflow
+      allow update: if canManageThisOrder() && validOrderStatusTransition();
+
+      // Customer cancellations and ratings use validated Cloud Functions.
+
+      // Drivers CANNOT update orders directly — assignment via Cloud Functions only
+      allow delete: if isSuperOrAdmin();
+    }
+
+    // Callable idempotency receipts contain server responses and are never
+    // exposed directly to clients.
+    match /checkout_requests/{requestId} {
+      allow read, write: if false;
+    }
+
+    // ─── catalog & CMS ──────────────────────────────────────────────
+
+    match /governorates/{id} {
+      allow read: if true;
+      allow create, update, delete: if canWriteGovernorates();
+    }
+
+    // ─── service zones (polygons) ──────────────────────────────────
+    // زون داخل محافظة: الأدمن/ContentEditor يقدر يديرها.
+    // باقي المستخدمين يقرأوا الزونز المفعّلة فقط لتقييد نشر الـ polygon.
+    match /governorates/{governorateId}/zones/{zoneId} {
+      allow read: if isSuperOrAdmin() || isContentEditor()
+        || resource.data.isActive == true;
+      allow create, update, delete: if canWriteGovernorates();
+    }
+
+    match /promo_banners/{id} {
+      allow read: if true;
+      allow create, update, delete: if canWritePromoBanners();
+    }
+
+    match /store_categories/{id} {
+      allow read: if true;
+      allow create, update, delete: if canWriteCategories();
+    }
+
+    match /promotions/{id} {
+      allow read: if true;
+      allow create, update, delete: if canWritePromotions();
+    }
+
+    match /cms_texts/{id} {
+      allow read: if true;
+      allow create, update, delete: if canWriteCmsTexts();
+    }
+
+    match /customer_activity_types/{id} {
+      allow read: if true;
+      allow create, update, delete: if canWriteActivityTypes();
+    }
+
+    // ─── system ─────────────────────────────────────────────────────
+
+    match /app_settings/{docId} {
+      allow read: if true;
+      allow create, delete: if canWriteAppSettings();
+      allow update: if canWriteAppSettings()
+        || (canWriteAppAlertsCms() && appAlertsFieldsOnly());
+    }
+
+    match /push_campaigns/{id} {
+      allow read, create, update, delete: if canManagePushCampaigns();
+    }
+
+    match /audit_logs/{id} {
+      allow create: if canWriteAuditLogs();
+      allow read: if canReadAuditLogs();
+      allow update, delete: if isSuperOrAdmin();
+    }
+
+    match /image_archives/{id} {
+      allow create: if isStaff();
+      allow read: if isStaff();
+      allow update, delete: if isSuperOrAdmin();
+    }
+
+    match /job_queue/{id} {
+      // Assignment jobs are Admin SDK-only; clients may enqueue staff tools only.
+      allow create: if isStaff()
+        && request.resource.data.keys().hasAll([
+          'type', 'status', 'priority', 'payload', 'createdAt'
+        ])
+        && request.resource.data.type in [
+          'analyticsBatch', 'reportExport', 'pushRetry'
+        ]
+        && request.resource.data.status == 'pending';
+      allow read: if isStaff();
+      allow update, delete: if false;
+    }
+
+    match /analytics_events/{id} {
+      allow create: if false;
+      allow read: if canReadAnalytics();
+      allow update, delete: if isSuperOrAdmin();
+    }
+
+    match /analytics_sessions/{id} {
+      allow create, update: if false;
+      allow read: if canReadAnalytics();
+      allow delete: if isSuperOrAdmin();
+    }
+
+    match /rate_limits/{id} {
+      allow read, write: if false;
+    }
+
+    match /phone_otps/{id} {
+      allow read, write: if false;
+    }
+
+    match /service_area_waitlist/{id} {
+      allow create: if isSignedIn()
+        && request.resource.data.keys().hasAll([
+          'name', 'phone', 'governorate', 'createdAt'
+        ])
+        && request.resource.data.name is string
+        && request.resource.data.phone is string
+        && request.resource.data.governorate is string;
+      allow read: if canReadAnalytics();
+      allow update, delete: if isSuperOrAdmin();
+    }
+
+    match /service_area_events/{id} {
+      allow create: if isSignedIn()
+        && request.resource.data.keys().hasAll([
+          'type', 'governorate', 'supported', 'createdAt'
+        ])
+        && request.resource.data.type is string
+        && request.resource.data.governorate is string
+        && request.resource.data.supported is bool;
+      allow read: if canReadAnalytics();
+      allow update, delete: if isSuperOrAdmin();
+    }
+
+    match /delivery_pricing_events/{id} {
+      allow create: if isSignedIn()
+        && request.resource.data.keys().hasAll([
+          'distanceKm', 'fee', 'isInZone', 'storeCount', 'createdAt'
+        ])
+        && request.resource.data.distanceKm is number
+        && request.resource.data.fee is number
+        && request.resource.data.isInZone is bool
+        && request.resource.data.storeCount is int;
+      allow read: if canReadAnalytics();
+      allow update, delete: if isSuperOrAdmin();
+    }
+
+    // Driver Heat State — CF-only writes (see DRIVER_MARKET_STATS.md)
+    match /driver_market_stats/{governorateId} {
+      allow read: if isSignedIn()
+        && authRole() == 'delivery'
+        && userDocExists()
+        && userDoc().data.driverApprovalStatus == 'approved';
+      allow create, update, delete: if false;
+    }
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "dart.useDds": false,
+  "dart.cliAdditionalArgs": [
+    "--no-dds"
+  ],
+  "dart.flutterRunAdditionalArgs": [
+    "--no-enable-impeller",
+    "--no-dds",
+    "--host-vmservice-port=8391"
+  ],
+  "dart.flutterTestAdditionalArgs": [
+    "--no-dds"
+  ],
+  "dart.flutterAdbConnectTimeout": 120,
+  "dart.openDevTools": "never"
+}

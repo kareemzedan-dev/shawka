@@ -1,0 +1,58 @@
+client:
+  id: tarfa
+  version: "0.0.1"
+  schemaVersion: 2
+  app_name: Tarfa
+  company_name: Tarfa
+  package_name: com.example.tarfa
+  bundle_id: com.example.tarfa
+  tagline: "اطلب من بيتك — أسرع توصيل في محافظتك"
+  admin_panel_title: "Tarfa Admin"
+  driver_app_name: "Tarfa Driver"
+
+firebase:
+  project_id: tarfa-placeholder
+  region: us-central1
+
+branding:
+  primary: "#FF7A00"
+  primary_dark: "#E56D00"
+  primary_light: "#FF9333"
+  secondary: "#071D35"
+  secondary_light: "#0B2E52"
+  accent: "#FF9333"
+
+support:
+  email: support@example.com
+  phone: "01000000000"
+  website: "https://example.com"
+  address: "City, Country"
+
+payment:
+  paymob:
+    enabled: false
+  stripe:
+    enabled: false
+  cash:
+    enabled: true
+
+maps:
+  provider: google
+
+features:
+  delivery:
+    enabled: true
+  pharmacy:
+    enabled: true
+  grocery:
+    enabled: true
+  wallet:
+    enabled: false
+  coupons:
+    enabled: false
+  subscriptions:
+    enabled: false
+  loyalty:
+    enabled: false
+  marketplace:
+    enabled: false

@@ -1,0 +1,19 @@
+[
+  {
+    "origin": [
+      "https://matlobgo.web.app",
+      "https://matlobgo.firebaseapp.com",
+      "http://localhost:8080",
+      "http://localhost:8081",
+      "http://localhost:*",
+      "http://127.0.0.1:*"
+    ],
+    "method": ["GET", "HEAD", "OPTIONS"],
+    "maxAgeSeconds": 3600,
+    "responseHeader": [
+      "Content-Type",
+      "Access-Control-Allow-Origin",
+      "x-goog-resumable"
+    ]
+  }
+]

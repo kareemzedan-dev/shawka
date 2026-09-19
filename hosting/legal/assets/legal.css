@@ -1,0 +1,159 @@
+/* شوكة و سكينة — legal pages */
+:root {
+  --bg: #f7f3ea;
+  --bg-accent: #efe8d8;
+  --ink: #0a0a0a;
+  --muted: #5a564c;
+  --gold: #d4af37;
+  --gold-dark: #8e6d2f;
+  --card: #fffcf6;
+  --line: rgba(10, 10, 10, 0.1);
+  --max: 720px;
+}
+
+* { box-sizing: border-box; }
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  font-family: "Segoe UI", Tahoma, "Noto Sans Arabic", Arial, sans-serif;
+  background:
+    radial-gradient(1200px 500px at 100% -10%, rgba(212, 175, 55, 0.18), transparent 55%),
+    radial-gradient(900px 420px at 0% 100%, rgba(142, 109, 47, 0.12), transparent 50%),
+    var(--bg);
+  color: var(--ink);
+  line-height: 1.75;
+  min-height: 100vh;
+}
+
+a {
+  color: var(--gold-dark);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+}
+
+a:hover { color: var(--ink); }
+
+.wrap {
+  width: min(100% - 2rem, var(--max));
+  margin-inline: auto;
+  padding: 1.5rem 0 3rem;
+}
+
+.topbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem 1.25rem;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 0 1.25rem;
+  border-bottom: 1px solid var(--line);
+  margin-bottom: 1.5rem;
+}
+
+.brand {
+  font-weight: 800;
+  font-size: 1.15rem;
+  letter-spacing: 0;
+  color: var(--ink);
+  text-decoration: none;
+}
+
+.nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem 1rem;
+  font-size: 0.92rem;
+}
+
+.nav a {
+  color: var(--muted);
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.nav a:hover,
+.nav a[aria-current="page"] {
+  color: var(--gold-dark);
+}
+
+.card {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  padding: 1.35rem 1.25rem 1.6rem;
+  box-shadow: 0 10px 30px rgba(10, 10, 10, 0.04);
+}
+
+h1 {
+  margin: 0 0 0.35rem;
+  font-size: clamp(1.45rem, 3.5vw, 1.9rem);
+  line-height: 1.35;
+}
+
+.meta {
+  color: var(--muted);
+  font-size: 0.92rem;
+  margin: 0 0 1.25rem;
+}
+
+h2 {
+  margin: 1.55rem 0 0.55rem;
+  font-size: 1.08rem;
+  color: var(--ink);
+}
+
+p { margin: 0 0 0.7rem; color: var(--muted); }
+
+ul {
+  margin: 0.25rem 0 0.9rem;
+  padding-inline-start: 1.2rem;
+  color: var(--muted);
+}
+
+li { margin-bottom: 0.35rem; }
+
+.note {
+  background: var(--bg-accent);
+  border: 1px solid rgba(212, 175, 55, 0.35);
+  border-radius: 14px;
+  padding: 0.95rem 1rem;
+  margin: 1rem 0 1.25rem;
+}
+
+.note strong { color: var(--ink); }
+
+.cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  background: var(--ink);
+  color: #fff !important;
+  text-decoration: none;
+  font-weight: 700;
+  border-radius: 12px;
+  padding: 0.75rem 1.1rem;
+  margin: 0.35rem 0.35rem 0.35rem 0;
+}
+
+.cta.secondary {
+  background: transparent;
+  color: var(--ink) !important;
+  border: 1px solid var(--line);
+}
+
+.footer {
+  margin-top: 1.75rem;
+  color: var(--muted);
+  font-size: 0.85rem;
+  text-align: center;
+}
+
+@media (max-width: 520px) {
+  .card { padding: 1.1rem 0.95rem 1.35rem; border-radius: 14px; }
+  .topbar { align-items: flex-start; }
+}

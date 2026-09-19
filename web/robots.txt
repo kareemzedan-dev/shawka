@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://matlobgo.web.app/sitemap.xml

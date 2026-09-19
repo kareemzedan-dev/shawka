@@ -1,0 +1,63 @@
+{
+  "screen": "cart",
+  "mode": "profile",
+  "device": "android-emulator (sdk gphone64 x86_64, API 34)",
+  "devicePixelRatio": 2.625,
+  "physicalSize": { "width": 1080.0, "height": 2337.0 },
+  "warmupSecondsDiscarded": 2,
+  "phases": [
+    {
+      "name": "idle",
+      "sampleSeconds": 5,
+      "frameTime": {
+        "count": 292,
+        "avgMs": 24.013,
+        "p50Ms": 22.992,
+        "p95Ms": 27.216,
+        "maxMs": 95.543,
+        "note": "totalSpan includes vsync wait; use build+raster for UI cost"
+      },
+      "buildTime": {
+        "count": 292,
+        "avgMs": 1.62,
+        "p50Ms": 1.417,
+        "p95Ms": 3.303,
+        "maxMs": 6.678
+      },
+      "rasterTime": {
+        "count": 292,
+        "avgMs": 15.03,
+        "p50Ms": 14.964,
+        "p95Ms": 18.845,
+        "maxMs": 84.089
+      },
+      "fpsEstimate": 58.4,
+      "eglAppTimeStatsSampleMs": { "avg": 5.8, "min": 2.5, "max": 15.5 },
+      "severeJankFramesOver33ms": 7
+    },
+    {
+      "name": "interaction",
+      "sampleSeconds": 4,
+      "frameTime": {
+        "count": 235,
+        "avgMs": 23.367,
+        "p50Ms": 22.945,
+        "note": "log truncated on process exit; times align with idle"
+      },
+      "status": "partial_log_due_to_exit_flush"
+    }
+  ],
+  "memory": {
+    "source": "ProcessInfo RSS at end of prior full profile run",
+    "currentRssMb": 209.75,
+    "maxRssMb": 215.64,
+    "rssDeltaHintMb": 5.9
+  },
+  "garbageCollection": {
+    "note": "No long GC stalls observed in logcat during idle sample; full GC pause histogram requires attaching Flutter DevTools Memory timeline on a physical device for AAA certainty",
+    "rssDeltaHintMb": 5.9
+  },
+  "widgetRebuildSignal": "interaction toggles quantity every 250ms; idle rebuilds limited to pulse overlay + progress animation",
+  "devtoolsUrlPattern": "available during run via Flutter DevTools profiler link printed by flutter run --profile",
+  "harness": "lib/debug/cart_profile_app.dart"
+}

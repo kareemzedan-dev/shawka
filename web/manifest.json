@@ -1,0 +1,44 @@
+{
+    "name": "شوكة و سكينة — توريد مواد غذائية",
+    "short_name": "شوكة و سكينة",
+    "start_url": "/",
+    "display": "standalone",
+    "background_color": "#000000",
+    "theme_color": "#0A0A0A",
+    "description": "اطلب من موردي المواد الغذائية بالجملة عبر تطبيق شوكة و سكينة مع توصيل سريع وتجربة فاخرة.",
+    "orientation": "portrait-primary",
+    "prefer_related_applications": true,
+    "related_applications": [
+        {
+            "platform": "play",
+            "url": "https://play.google.com/store/apps/details?id=com.xyronix.shawka",
+            "id": "com.xyronix.shawka"
+        }
+    ],
+    "lang": "ar",
+    "dir": "rtl",
+    "icons": [
+        {
+            "src": "icons/Icon-192.png",
+            "sizes": "192x192",
+            "type": "image/png"
+        },
+        {
+            "src": "icons/Icon-512.png",
+            "sizes": "512x512",
+            "type": "image/png"
+        },
+        {
+            "src": "icons/Icon-maskable-192.png",
+            "sizes": "192x192",
+            "type": "image/png",
+            "purpose": "maskable"
+        },
+        {
+            "src": "icons/Icon-maskable-512.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "maskable"
+        }
+    ]
+}

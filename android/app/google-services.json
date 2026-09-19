@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "270162620721",
+    "project_id": "shawka-689fa",
+    "storage_bucket": "shawka-689fa.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:270162620721:android:38635334673b6158284010",
+        "android_client_info": {
+          "package_name": "com.matlob.go.matlobgo"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBWXJDlvPZAgYxuegEvgrqYLLQLCYpady8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:270162620721:android:02ac5348cc993138284010",
+        "android_client_info": {
+          "package_name": "com.xyronix.shawka"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBWXJDlvPZAgYxuegEvgrqYLLQLCYpady8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

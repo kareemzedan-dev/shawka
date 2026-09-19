@@ -1,0 +1,3 @@
+@echo off
+echo Starting MatlobGo ADMIN panel (NOT customer app)...
+flutter run -d chrome -t lib/main_admin.dart
